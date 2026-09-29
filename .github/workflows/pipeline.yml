@@ -133,19 +133,26 @@ jobs:
           java -version
           mvn -version
 
-      - name: Cache SonarCloud packages
+      - name: Cache Maven and SonarCloud
         uses: actions/cache@v4
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
+          path: |
+            ~/.m2/repository
+            ~/.sonar/cache
+          key: ${{ runner.os }}-maven-sonar-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-sonar
+            ${{ runner.os }}-maven-sonar-
+            ${{ runner.os }}-maven-
+
+      - name: Compile project
+        run: mvn -B compile -DskipTests
 
       - name: SonarQube Cloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B verify sonar:sonar \
+          mvn -B verify \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey="${{ env.SONAR_PROJECT_KEY }}" \
             -Dsonar.organization="${{ env.SONAR_ORGANIZATION }}" \
             -Dsonar.host.url="https://sonarcloud.io"
@@ -158,5 +165,5 @@ jobs:
           sonar-host-url: https://sonarcloud.io
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          fail-on-quality-gate-error: false
+          fail-on-quality-gate-error: false          
   
