@@ -114,53 +114,47 @@ jobs:
     name: SonarQube-Scan
     runs-on: ubuntu-latest
     needs: test
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+ 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
-          distribution: temurin
+          distribution: 'temurin'
           cache: maven
-
-      - name: Verify Java and Maven
-        run: |
-          java -version
-          mvn -version
-
-      - name: Cache Maven dependencies
+ 
+      - name: Cache SonarCloud packages
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Compile project
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+ 
+      - name: Compile project for analysis
         run: mvn -B compile -DskipTests
-
-      - name: SonarQube Cloud Analysis
+ 
+      - name: SonarQube code analysis
+        uses: SonarSource/sonarqube-scan-action@v4
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn -B verify \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar \
-            -Dsonar.projectKey="${{ env.SONAR_PROJECT_KEY }}" \
-            -Dsonar.organization="${{ env.SONAR_ORGANIZATION }}" \
-            -Dsonar.host.url="https://sonarcloud.io" \
-            -Dsonar.scanner.skipJreProvisioning=true
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+            -Dsonar.java.binaries=target/classes
+ 
       - name: SonarCloud Quality Gate Check
         id: quality-gate
         uses: phwt/sonarqube-quality-gate-action@v1
         with:
           sonar-project-key: ${{ env.SONAR_PROJECT_KEY }}
           sonar-host-url: https://sonarcloud.io
-          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          sonar-token: ${{ env.SONAR_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          fail-on-quality-gate-error: false  
+          fail-on-quality-gate-error: true          
+ 
