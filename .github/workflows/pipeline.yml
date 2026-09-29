@@ -49,7 +49,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -136,7 +136,7 @@ jobs:
  
       - name: Compile project for analysis
         run: mvn -B compile -DskipTests
-        # Fail fast with a clear message if SONAR_TOKEN is missing or invalid
+# Fail fast with a clear message if SONAR_TOKEN is missing or invalid
       # (otherwise the scanner only reports a cryptic 403 on /analysis/jres)
       - name: Validate SonarCloud token
         run: |
@@ -152,7 +152,7 @@ jobs:
           echo "SonarCloud token is valid"
 
       - name: SonarQube code analysis
-        uses: SonarSource/sonarqube-scan-action@v8.2.2
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
@@ -164,7 +164,7 @@ jobs:
  
       - name: SonarCloud Quality Gate Check
         id: quality-gate
-        uses: phwt/sonarqube-quality-gate-action@v1
+        uses: phwt/sonarqube-quality-gate-action@e8842ff65b97bfa4fd4effe3ab0909f568d16e91 # v1
         with:
           sonar-project-key: ${{ env.SONAR_PROJECT_KEY }}
           sonar-host-url: https://sonarcloud.io
