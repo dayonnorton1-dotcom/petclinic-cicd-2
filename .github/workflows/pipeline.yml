@@ -136,9 +136,23 @@ jobs:
  
       - name: Compile project for analysis
         run: mvn -B compile -DskipTests
- 
+        # Fail fast with a clear message if SONAR_TOKEN is missing or invalid
+      # (otherwise the scanner only reports a cryptic 403 on /analysis/jres)
+      - name: Validate SonarCloud token
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "::error::SONAR_TOKEN secret is empty or not defined in the repository secrets"
+            exit 1
+          fi
+          if ! curl -sf -H "Authorization: Bearer $SONAR_TOKEN" \
+               https://sonarcloud.io/api/authentication/validate | grep -q '"valid":true'; then
+            echo "::error::SONAR_TOKEN is not a valid SonarCloud token. Generate a new one in SonarCloud (My Account > Security) and paste ONLY the token value into the SONAR_TOKEN secret."
+            exit 1
+          fi
+          echo "SonarCloud token is valid"
+
       - name: SonarQube code analysis
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@v8.2.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
@@ -156,5 +170,4 @@ jobs:
           sonar-host-url: https://sonarcloud.io
           sonar-token: ${{ env.SONAR_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          fail-on-quality-gate-error: true          
- 
+          fail-on-quality-gate-error: true
