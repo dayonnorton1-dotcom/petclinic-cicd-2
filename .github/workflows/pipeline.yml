@@ -152,7 +152,7 @@ jobs:
             org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar \
             -Dsonar.projectKey="${{ env.SONAR_PROJECT_KEY }}" \
             -Dsonar.organization="${{ env.SONAR_ORGANIZATION }}" \
-            -Dsonar.host.url="https://sonarcloud.io"
+            -Dsonar.host.url="https://sonarcloud.io" \
 
       - name: SonarCloud Quality Gate Check
         id: quality-gate
