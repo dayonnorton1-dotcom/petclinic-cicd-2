@@ -128,20 +128,17 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Verify Java
+      - name: Verify Java and Maven
         run: |
           java -version
           mvn -version
 
-      - name: Cache Maven and SonarCloud
+      - name: Cache Maven dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.m2/repository
-            ~/.sonar/cache
-          key: ${{ runner.os }}-maven-sonar-${{ hashFiles('**/pom.xml') }}
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-sonar-
             ${{ runner.os }}-maven-
 
       - name: Compile project
@@ -152,7 +149,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn -B verify \
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar \
             -Dsonar.projectKey="${{ env.SONAR_PROJECT_KEY }}" \
             -Dsonar.organization="${{ env.SONAR_ORGANIZATION }}" \
             -Dsonar.host.url="https://sonarcloud.io"
@@ -165,5 +162,4 @@ jobs:
           sonar-host-url: https://sonarcloud.io
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          fail-on-quality-gate-error: false          
-  
+          fail-on-quality-gate-error: false  
